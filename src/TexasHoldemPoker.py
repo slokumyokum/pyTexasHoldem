@@ -3,7 +3,7 @@ import os
 import sys
 import random
 from random import shuffle
-# import time
+import time
 from pathlib import Path
 # from math import sqrt, cos, sin, radians
 import pygame
@@ -11,7 +11,7 @@ from pygame import Color, Rect, Surface, display, \
     image, font, mouse, MOUSEBUTTONDOWN, MOUSEBUTTONUP, \
     QUIT, KEYDOWN, K_ESCAPE, K_SPACE, KEYUP, KMOD_SHIFT
 from pygame.transform import smoothscale_by
-from PokerRules import Card, Hand, Deck, best_hands, logstats, writelog
+from PokerRules import Card, Hand, Carddeck, best_hands, logstats, writelog
 import json
 #shutup.please()
 # from collections import namedtuple
@@ -106,7 +106,7 @@ class H:
 class R:
     layerData = {}  # : [dict]
     card_image_d = {}
-    deck: [str] = Deck()
+    deck = Carddeck("")
     cccard = 0
     ncc = 3
     step = -1
@@ -131,7 +131,7 @@ class R:
     PLAYERNAMES = ['you', 'Ian', 'Ben', 'Jax', 'Max', 'Pam', 'Ray', 'Sal', 'Zak']
     PLAYERCARDXY = {'you': [1249, 356], 'Ian': [1412, 399],
                     'Ben': [1384, 582], 'Jax': [1220, 728],
-                    'Max': [928, 739], 'Pam': [636, 737],
+                    'Max': [928, 728], 'Pam': [636, 728],
                     'Ray': [471, 584], 'Sal': [474, 393], 'Zak': [651, 358]}
     COMMUNITYCARDSXY = [[845, 488], [922, 488], [998, 488], [1071, 488], [1148, 488]]
     CARDWIDTH = 76
@@ -153,6 +153,7 @@ class R:
 def initialization(name: str) -> bool:
     # takes the place of dozens of separate flags to
     # determine if something has been done yet
+    print("order of deal:",R.reordered_names)
     if name not in R.flaglist:
         R.flaglist.append(name)
         print(f'initialiation {name}')
@@ -338,7 +339,7 @@ def read_mini_cards() -> {}:
     load all the minicard images
     """
     sprite_sheet_image = image.load(Path(main_dir, 'assets', 'image', 'cardsheet75x107.png'))
-    sprite_sheet_image.convert_alpha(screen)
+    sprite_sheet_image.convert_alpha()  #screen)
     w, h = sprite_sheet_image.get_size()
     rows = 4
     columns = 13
@@ -363,7 +364,7 @@ def read_mini_cards() -> {}:
             # !!! It seems simpler to use subsurface, but it may be buggy
             cimage.blit(sprite_sheet_image, (0, 0), area=Rect(x1, y1, columnsize, rowsize))
             # sprite_sheet_image.blit(cimage, (0, 0))
-            imagedict[cardname] = cimage.copy().convert_alpha(screen)
+            imagedict[cardname] = cimage.copy().convert_alpha()  #screen)
             x1 += columnsize
         x1 = 0
         y1 += rowsize
@@ -373,25 +374,26 @@ def read_mini_cards() -> {}:
     return imagedict
 
 
-def populate_deck():
-    """ Generate full 52 card deck from str constants
-    """
-    R.deck = Deck()
-    R.deck.print_deck()
-    return
-
-
-def populate_deck2(carddeck: [Card]):
-    """ Generate full 52 card deck from str constants
-    """
-    cards: [str] = []
-    for i in range(0, len(carddeck), 2):
-        cards.append(carddeck[i:i+2])
-    t = time.time_ns() >> 8
-    random.seed(t, version=2)
-    shuffle(cards)
-    R.deck = cards
-    return
+# def populate_deck(stacked: list):
+#     """ Generate full 52 card deck from str constants
+#     """
+#     if stacked is None or len(stacked) == 0:
+#         ucards = cards_52s1
+#     Carddeck(ucards=stacked)
+#     Carddeck.print_deck()
+#     return
+#
+#
+    # def populate_deck2(self):
+    #     # Generate full 52 card deck from str constant
+    #     R.deck = Carddeck()
+    #     cards = []
+    #     for i in range(0, len(self.cards), 2):
+    #         cards.append(self.carddeck.cards:[i:i+2])
+    #     t = time.time_ns() >> 8
+    #     random.seed(t, version=2)
+    #     shuffle(cards)
+    #     return cards
 
 
 testdeck = '2s2c3h3c3s4s4h5c5h6h6c6d7d' \
@@ -407,13 +409,13 @@ def populate_deck3():
     cards: [str] = []
     for i in range(0, len(testdeck), 2):
         cards.append(testdeck[i:i+2])
-    R.deck = Deck(cards)
+    R.deck = Carddeck(cards)
  
  
 def preloadcards():
     # populate_deck3() #FOR TESTING
     # populate_deck2(cards_52s1)
-    populate_deck()
+    R.deck = Carddeck(cards_52s1)
     R.card_image_d = read_mini_cards()
  
 
@@ -477,7 +479,7 @@ def draw_poker_table():
             visible: bool = layer.get("visible")
             offsets: [int] = layer.get("offsets")
             # mask_bounds: [int] = layer.get("mask_bounds")
-            layerimage = layerimage.convert_alpha(screen)
+            layerimage = layerimage.convert_alpha()  #screen)
             R.layerData[layername] = [offsets, layerimage, visible]
         # print(f'{layername}: {offsets[0]},{offsets[1]}')
 
@@ -637,6 +639,12 @@ def dealholecards(ang: int, second: bool):
         spindeal(pos, backx, card1, screen, WIDTH//2, angle=a1, showcard=showyou)
     R.deal_target = 0  # R.under_the_gun
 
+def showholecards():
+
+    playernum = 0
+    for player in R.reordered_names:
+        showholecard(playernum)
+        playernum += 1
 
 def showholecard(playernum: int):
     playername = R.reordered_names[playernum]
@@ -645,11 +653,12 @@ def showholecard(playernum: int):
     offsets2, cardname2, cardimage2 = R.HoleCardRecord2[playername]
     # card2 = [offsets[0]+R.CARDWIDTH,offsets[1]+10]
     cardsize = cardimage.get_size()
-    x1 = offsets[0] - 2
-    y1 = offsets[1] - 10
-    x2 = offsets[0] + cardsize[0] + 2
-    y2 = offsets[1] - 10
-    cardrect = Rect(offsets[0]-22, offsets[1]-20, cardsize[0]*2+20, cardsize[1]+27)
+    x1 = offsets[0] - 10
+    y1 = offsets[1] #- 10
+    x2 = offsets[0]- 10 + cardsize[0] + 2
+    y2 = offsets[1] #- 10
+    #cardrect = Rect(offsets[0]-22, offsets[1]-20, cardsize[0]*2+20, cardsize[1]+27)
+    cardrect = Rect(offsets[0] - 10, offsets[1] - 10, cardsize[0]*2+2, cardsize[1]+8)
     pygame.draw.rect(screen, Color(207, 86, 25), cardrect, width=0)
     scaleblit(cardimage, [x1, y1])
     scaleblit(cardimage2, [x2, y2])
@@ -775,7 +784,7 @@ def draw_text_labels(bottexts: [str]):
 
 
 def drawbotlabels():
-    for n in range(len(R.PLAYERNAMES)):
+    for n in range(R.num_players_in_hand):
         pos = DealerButtons[n]
         txt = R.PLAYERNAMES[n]
         print(pos, n, txt)
@@ -989,6 +998,7 @@ def preflop_betting():
     playernum = R.PLAYERS[R.bet_target_name]
     dealto = R.bet_target
     # print(f'{R.HoleCardRecord1}')
+    print("order of deal:",R.bet_target_name)
     card1: str = R.HoleCardRecord1[R.bet_target_name][1]
     card2: str = R.HoleCardRecord2[R.bet_target_name][1]
     rank1: int = Card.rankOrderD[card1[0]]
@@ -1350,6 +1360,8 @@ def sequencer() -> bool:
                             break
                         case 5:  # dealmouserect
                             running = False
+                            quitflag = False
+                            resetflag = True
                             break
                         case 6:  # foldrect
                             placebet('you', 'Fold')
@@ -1540,18 +1552,18 @@ def sequencer() -> bool:
                 #     R.step += 1
 
             case 12:
-                # showholecard(R.playernum)
+                showholecards()
                 if initialization('showdown'):
                     print(f'#{R.cardsdealt} card to {R.deal_target_name}')
-                    showholecard(R.deal_target)
-                else:
-                    if R.bets >= NUMPLAYERS:
+                    #showholecard(R.deal_target)
+                #else:
+                    if R.bets >= R.num_players_in_hand: #NUMPLAYERS:
                         R.step += 1
 
             case 13:
                 # wn = calc_winner()
                 refresh_display()
-                drawbotlabels()
+                #drawbotlabels()
                 R.step += 1
                 pygame.time.set_timer(timer_event, vardelay)
             case _:
@@ -1588,14 +1600,11 @@ def main():
         set_card_offsets_simple()  # set_card_offsets()
         draw_poker_table()
         run = sequencer()
+        reinit()
         inc_deal()
         R.cccard = 0
-        # populate_deck2(cards_52s1)
-        # populate_deck()
-        R.deck.reshuffle_deck()
-        reinit()
-        logstats()
-    pygame.quit()
+        R.deck = Carddeck(cards_52s1)
+     pygame.quit()
 
 
 if __name__ == '__main__':

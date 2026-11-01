@@ -198,17 +198,13 @@ class Card:
         return 11 <= self.rank <= 13
     
  
-class Deck:
+class Carddeck:
     
     _KEY = 1.27894657402
 
-    def __init__(self, ucards=None):
-       # if ucards is None:
-        self.cards = populate_deck()
-        # else:
-
-        if ucards is not None:
-            self.cards = ucards
+    def __init__(self, starter_deck: str):
+        self.cards = []
+        self.populate_deck(starter_deck)
         self._key = D.LTIME
         self.logdeck('New deck:') # top of the deck (with pop)
         self.usedcards = []
@@ -218,6 +214,20 @@ class Deck:
         self.replacing_cards: [Card] = []
         self.usedcardcount = used_count.copy()
         check_start_deck()
+
+    def populate_deck(self, starter_deck: str):
+        """ Generate full 52 card deck from str constants
+        """
+        if starter_deck == "":
+            starter_deck = cards_52s1
+        self.cards = []
+        for i in range(0, len(starter_deck), 2):
+            self.cards.append(Card(starter_deck[i:i + 2]))
+        if not disable_random:
+            D.LTIME: int = time.time_ns() >> 4
+            # print(f'\n{D.LTIME}\n')
+            random.seed(D.LTIME, version=2)
+            shuffle(self.cards)
 
     def print_deck(self):
         print(f'card count={len(self.cards)}')
@@ -314,19 +324,6 @@ def check_start_deck():
     writelog([dstr1,dstr2], printalso=True)
     return
 
-
-def populate_deck() -> [Card]:
-    """ Generate full 52 card deck from str constants
-    """
-    cards: [Card] = []
-    for i in range(0, len(start_deck), 2):
-        cards.append(Card(start_deck[i:i+2]))
-    if not disable_random:
-        D.LTIME: int = time.time_ns() >> 4
-        # print(f'\n{D.LTIME}\n')
-        random.seed(D.LTIME, version=2)
-        shuffle(cards)
-    return cards
 
 
 class Hand:
