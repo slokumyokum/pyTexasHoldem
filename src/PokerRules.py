@@ -359,7 +359,7 @@ class Hand:
         self.cards.extend(card_list)
         for card in card_list:
             newcard = Card(card.name)
-            card_str += newcard.name  # rank_str[card.rank] #str(Card.rank_str.index(newcard.rank)) #card_str +=
+            card_str += card.name  # rank_str[card.rank] #str(Card.rank_str.index(newcard.rank)) #card_str +=
             # card_str += Card.suit_str[newcard.suit]
         self.name = card_str
         rank_count = Hand.rankCounter.copy()
@@ -520,21 +520,10 @@ def best_hands(holecards: [Card], communitycards: [Card]) -> Hand:
         for j in range(5):  #find the 5 best cards in each poker hand
             crd = evalcards[pt[i][j]-1]
             elong.append(Card(crd))
-            # if type(crd) is str:
-            #     elong.append(Card(crd))
-            # elif type(crd) is Card:
-            #     card = crd
-            # elif type(crd) is list:
-            #     print(f'type is list {crd[0]}')
-            #     card = crd[0]
-            # else:
-            #     print(f'type is {type(crd)}')
-            #     break
-            # elong.append(card)
         hand = Hand(elong)
         hands.append(hand)
         score = hand.rankhand
-        #print(f'\n score={score}')
+        print(f'\n score={score}')
         if score < bestscore: #(lower scores are better: think golf)
             bestscore = score
             wn = n

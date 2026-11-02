@@ -1561,7 +1561,8 @@ def sequencer() -> bool:
                         R.step += 1
 
             case 13:
-                # wn = calc_winner()
+                wn = calc_winner()
+                print (f'winner is {R.PLAYERNAMES}')
                 refresh_display()
                 #drawbotlabels()
                 R.step += 1
@@ -1604,7 +1605,7 @@ def main():
         inc_deal()
         R.cccard = 0
         R.deck = Carddeck(cards_52s1)
-     pygame.quit()
+#     pygame.quit()
 
 
 if __name__ == '__main__':
