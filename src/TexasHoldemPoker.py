@@ -1,11 +1,9 @@
-# import shutup
 import os
 import sys
 import random
 from random import shuffle
 import time
 from pathlib import Path
-# from math import sqrt, cos, sin, radians
 import pygame
 from pygame import Color, Rect, Surface, display, \
     image, font, mouse, MOUSEBUTTONDOWN, MOUSEBUTTONUP, \
@@ -13,8 +11,7 @@ from pygame import Color, Rect, Surface, display, \
 from pygame.transform import smoothscale_by
 from PokerRules import Card, Hand, Carddeck, best_hands, logstats, writelog
 import json
-#shutup.please()
-# from collections import namedtuple
+from PokerHandList import handrankdict
 os.environ['SDL_VIDEO_CENTERED'] = '1'  # center screen
 os.environ['PYGAME_FORCE_SCALE'] = 'photo'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
@@ -40,10 +37,7 @@ Community_cards = ["cc_Flop1.png", "cc_Flop2.png",
                    "cc_Flop3.png", "cc_Turn.png", "cc_River.png"]
 DealerButtons = [[1297, 274], [1492, 525], [1485, 765], [1219, 880], [840, 845],
                  [621, 810], [375, 681], [330, 472], [420, 274]]  # going cw starting with you
-# BOTPREFIX  = 'ch_'
-CARDPREFIX = 'cp_'
-# COMMUNITY  = 'cc_'
-# CHIPPREFIX = 'cp_'
+ARDPREFIX = 'cp_'
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -153,9 +147,9 @@ class R:
 def initialization(name: str) -> bool:
     # takes the place of dozens of separate flags to
     # determine if something has been done yet
-    print("order of deal:",R.reordered_names)
-    if name not in R.flaglist:
-        R.flaglist.append(name)
+    #print("order of deal:",RO.reordered_names)
+    if name not in RO.flaglist:
+        RO.flaglist.append(name)
         print(f'initialiation {name}')
         return True
     else:
@@ -165,26 +159,14 @@ def initialization(name: str) -> bool:
 # text_box_rect = pygame.Rect(410, 20, 415 ,435)
 
 def player_relative_to_dealer(orderindeal: int) -> int:
-    order = R.the_button
+    order = RO.the_button
     for i in range(orderindeal):
         order = (order + 1) % NUMPLAYERS
     return order
 
 
-def reinit():
-    R.PlayerCardPos = {}
-    # R.PlayerHoleCards = {}
-    R.HoleCardRecord1 = {}
-    R.HoleCardRecord2 = {}
-    R.playercards = {}
-    R.inhand = [True, True, True, True, True, True, True, True, True]
-    R.reordered_names = []
+RO: R = R()
 
-    # R.PlayerHoleCardNames = {}
-    R.CommunityCards = []
-    H.pottext = ''
-    H.pot = 0
-    R.step = -1
 
 
 class LayeredImage:
@@ -374,28 +356,6 @@ def read_mini_cards() -> {}:
     return imagedict
 
 
-# def populate_deck(stacked: list):
-#     """ Generate full 52 card deck from str constants
-#     """
-#     if stacked is None or len(stacked) == 0:
-#         ucards = cards_52s1
-#     Carddeck(ucards=stacked)
-#     Carddeck.print_deck()
-#     return
-#
-#
-    # def populate_deck2(self):
-    #     # Generate full 52 card deck from str constant
-    #     R.deck = Carddeck()
-    #     cards = []
-    #     for i in range(0, len(self.cards), 2):
-    #         cards.append(self.carddeck.cards:[i:i+2])
-    #     t = time.time_ns() >> 8
-    #     random.seed(t, version=2)
-    #     shuffle(cards)
-    #     return cards
-
-
 testdeck = '2s2c3h3c3s4s4h5c5h6h6c6d7d' \
     '3d4d4c5dAdTs7hAhJc8d8h2h7s2dJs9c6s5sJhKdAcQd9s' \
     '7h7c8c8d9h9dAhAcJdKhKcKsQhQsQc3d4d4c'
@@ -409,23 +369,23 @@ def populate_deck3():
     cards: [str] = []
     for i in range(0, len(testdeck), 2):
         cards.append(testdeck[i:i+2])
-    R.deck = Carddeck(cards)
+    RO.deck = Carddeck(cards)
  
  
 def preloadcards():
     # populate_deck3() #FOR TESTING
     # populate_deck2(cards_52s1)
-    R.deck = Carddeck(cards_52s1)
-    R.card_image_d = read_mini_cards()
+    RO.deck = Carddeck(cards_52s1)
+    RO.card_image_d = read_mini_cards()
  
 
 def pick_a_card() -> (str, image):
     try:
-        card = R.deck.deal_a_card()
+        card = RO.deck.deal_a_card()
     except IndexError:
         print('Out of cards in deck.')
         return None, None
-    return card.name, R.card_image_d[card.name]
+    return card.name, RO.card_image_d[card.name]
  
 
 
@@ -478,55 +438,53 @@ def draw_poker_table():
         else:
             visible: bool = layer.get("visible")
             offsets: [int] = layer.get("offsets")
-            # mask_bounds: [int] = layer.get("mask_bounds")
             layerimage = layerimage.convert_alpha()  #screen)
-            R.layerData[layername] = [offsets, layerimage, visible]
-        # print(f'{layername}: {offsets[0]},{offsets[1]}')
+            RO.layerData[layername] = [offsets, layerimage, visible]
 
         
 def inc_deal():
-    R.the_button = (R.the_button + 1) % NUMPLAYERS
-    R.the_small_blind = (R.the_small_blind + 1) % NUMPLAYERS
-    R.the_big_blind = (R.the_big_blind + 1) % NUMPLAYERS
-    R.under_the_gun = (R.under_the_gun + 1) % NUMPLAYERS
+    RO.the_button = (RO.the_button + 1) % NUMPLAYERS
+    RO.the_small_blind = (RO.the_small_blind + 1) % NUMPLAYERS
+    RO.the_big_blind = (RO.the_big_blind + 1) % NUMPLAYERS
+    RO.under_the_gun = (RO.under_the_gun + 1) % NUMPLAYERS
 
 
 def calc_winner() -> int:
-    R.playercards = {}
-    for player in R.PLAYERNAMES:
-        offsets, deck_cardname1, diskcardimage = R.HoleCardRecord1[player]
-        offsets, deck_cardname2, diskcardimage = R.HoleCardRecord2[player]
-        R.playercards[player] = [Card(deck_cardname1), Card(deck_cardname2)]
-        print(f'R.playercards[player]={R.playercards[player]}')
-    R.PlayerBestHands = []
-    for player in R.PLAYERNAMES:
-        besthand = best_hands(R.playercards[player], R.CommunityCards)
-        R.PlayerBestHands.append(besthand)
+    RO.playercards = {}
+    for player in RO.PLAYERNAMES:
+        offsets, deck_cardname1, diskcardimage = RO.HoleCardRecord1[player]
+        offsets, deck_cardname2, diskcardimage = RO.HoleCardRecord2[player]
+        RO.playercards[player] = [Card(deck_cardname1), Card(deck_cardname2)]
+        print(f'player={RO.playercards[player]}')
+    RO.PlayerBestHands = []
+    for player in RO.PLAYERNAMES:
+        besthand = best_hands(RO.playercards[player], RO.CommunityCards)
+        RO.PlayerBestHands.append(besthand)
     wn = 0
-    # R.playerscore = {'you': 0, 'Ian': 0, 'Ben': 0, 'Jax': 0, 'Max': 0, 'Pam': 0, 'Ray': 0, 'Sal': 0, 'Zak': 0}
+    # RO.playerscore = {'you': 0, 'Ian': 0, 'Ben': 0, 'Jax': 0, 'Max': 0, 'Pam': 0, 'Ray': 0, 'Sal': 0, 'Zak': 0}
     scores = []
     bestscore = 7462  # start with lowest possible score (highest number)
-    for n in range(NUMPLAYERS):  # R.num_players_in_hand?
+    for n in range(NUMPLAYERS):  # RO.num_players_in_hand?
         besthands()
-        hand: [Hand] = R.PlayerBestHands[n]  # .hand_name
+        hand: [Hand] = RO.PlayerBestHands[n]  # .hand_name
         score = hand.rankhand  # get_rank(hand.sname,  hand.name)
         scores.append(score)
-        writelog([f'{R.PLAYERNAMES[n]}:{hand.name}:{hand.sname}'])
+        writelog([f'{RO.PLAYERNAMES[n]}:{hand.name}:{hand.sname}'])
         if score < bestscore:  # (lower scores are better: think golf)
             bestscore = score
             wn = n
-    pos = DealerButtons[wn]  # R.PLAYERNAMES[
+    pos = DealerButtons[wn]  # RO.PLAYERNAMES[
     scaleblit(winimage, pos)
     # print(f'pos= {pos} wn={wn}')
     winners = []
     if scores.count(bestscore) > 1:
         for i, score in enumerate(scores):
             if score == bestscore:
-                pos = DealerButtons[i]  # R.PLAYERNAMES[
+                pos = DealerButtons[i]  # RO.PLAYERNAMES[
                 scaleblit(tieimage, pos)
-                winners.append(R.PLAYERNAMES[i])
+                winners.append(RO.PLAYERNAMES[i])
         splitpot(winners)
-    # print(f'winners: {winners}')
+    print(f'winners: {winners}')
     return wn
 
 
@@ -535,64 +493,61 @@ def splitpot(winnernames: []):
     # wn = -1
     potdiv = H.pot // scount
     for name in winnernames:
-        i = R.PLAYERNAMES.index(name)
+        i = RO.PLAYERNAMES.index(name)
         H.PlayerStakes[i] += potdiv
     
     
 def besthands():
-    R.PlayerBestHands = []
-    # for playernum in range(NUMPLAYERS): #R.PLAYERS:
-    for player in R.PLAYERNAMES:
-        # if R.inhand[player]:
-        holecards = [R.HoleCardRecord1[player][1], R.HoleCardRecord2[player][1]]
-        besthand = best_hands(holecards, R.CommunityCards)
-        R.PlayerBestHands.append(besthand)
-    return R.PlayerBestHands
+    RO.PlayerBestHands = []
+    # for playernum in range(NUMPLAYERS): #RO.PLAYERS:
+    for player in RO.PLAYERNAMES:
+        # if RO.inhand[player]:
+        holecards = [RO.HoleCardRecord1[player][1], RO.HoleCardRecord2[player][1]]
+        besthand = best_hands(holecards, RO.CommunityCards)
+        RO.PlayerBestHands.append(besthand)
+    return RO.PlayerBestHands
 
 
 def set_card_offsets_simple():
-    R.PlayerCardPos = {}
-    for player in R.PLAYERNAMES:
-        R.PlayerCardPos[player] = scalept(R.PLAYERCARDXY[player])
+    RO.PlayerCardPos = {}
+    for player in RO.PLAYERNAMES:
+        RO.PlayerCardPos[player] = scalept(RO.PLAYERCARDXY[player])
 
 
 def set_card_offsets():
-    R.PlayerCardPos = {}
-    for player in R.PLAYERNAMES:
+    RO.PlayerCardPos = {}
+    for player in RO.PLAYERNAMES:
         layername = CARDPREFIX+player+'.png'
-        offsets, layerimage, visible = R.layerData[layername]
-        R.PlayerCardPos[player] = scalept(offsets)
+        offsets, layerimage, visible = RO.layerData[layername]
+        RO.PlayerCardPos[player] = scalept(offsets)
 
 
-def players_in_deal_order() -> []:
+def players_in_deal_order() -> [str]:
     # returns the players in order of cards dealt
     # players = ['you', 'Ian', 'Ben', 'Jax', 'Max', 'Pam', 'Ray', 'Sal', 'Zak']
-    if R.the_button == 0:
-        return R.PLAYERNAMES  # R.PLAYERNAMES
-    # return players[:pnum].append(players[pnum:])
-    players1 = R.PLAYERNAMES[:R.the_button]
-    players2 = R.PLAYERNAMES[R.the_button:]
-    # print(f'players:{players1} : {players2}')
+    if RO.the_button == 0:
+        return RO.PLAYERNAMES
+    players1 = RO.PLAYERNAMES[:RO.the_button]
+    players2 = RO.PLAYERNAMES[RO.the_button:]
     players2.extend(players1)
-    # print(f'players:{players2} ')
     return players2
 
 
 def dealholecard(ang: int, second: bool, player: str, initc=False):
     if initc:
         if second:
-            R.HoleCardRecord2 = {}
+            RO.HoleCardRecord2 = {}
         else:
-            R.HoleCardRecord1 = {}
-    offsets = R.PlayerCardPos[player]
+            RO.HoleCardRecord1 = {}
+    offsets = RO.PlayerCardPos[player]
     pos = offsets.copy()
     deck_cardname, deck_cardimage = pick_a_card()
-    diskcardimage = R.card_image_d[deck_cardname]
+    diskcardimage = RO.card_image_d[deck_cardname]
     if second:
-        R.HoleCardRecord2[player] = (offsets, deck_cardname, diskcardimage)
+        RO.HoleCardRecord2[player] = (offsets, deck_cardname, diskcardimage)
     else:
-        R.HoleCardRecord1[player] = (offsets, deck_cardname, diskcardimage)
-    backx = R.card_image_d['bk']
+        RO.HoleCardRecord1[player] = (offsets, deck_cardname, diskcardimage)
+    backx = RO.card_image_d['bk']
     card1 = diskcardimage
     showyou = SHOWALLHOLECARDS or player == 'you'
     if showyou:
@@ -610,19 +565,19 @@ def dealholecard(ang: int, second: bool, player: str, initc=False):
 
 def dealholecards(ang: int, second: bool):
     if second:
-        R.HoleCardRecord2 = {}
+        RO.HoleCardRecord2 = {}
     else:
-        R.HoleCardRecord1 = {}
-    for player in R.reordered_names:
-        offsets = R.PlayerCardPos[player]
+        RO.HoleCardRecord1 = {}
+    for player in RO.reordered_names:
+        offsets = RO.PlayerCardPos[player]
         pos = offsets.copy()
         deck_cardname, deck_cardimage = pick_a_card()
-        diskcardimage = R.card_image_d[deck_cardname]
+        diskcardimage = RO.card_image_d[deck_cardname]
         if second:
-            R.HoleCardRecord2[player] = (offsets, deck_cardname, diskcardimage)
+            RO.HoleCardRecord2[player] = (offsets, deck_cardname, diskcardimage)
         else:
-            R.HoleCardRecord1[player] = (offsets, deck_cardname, diskcardimage)
-        backx = R.card_image_d['bk']
+            RO.HoleCardRecord1[player] = (offsets, deck_cardname, diskcardimage)
+        backx = RO.card_image_d['bk']
         card1 = diskcardimage
         showyou = player == 'you'
         if showyou:
@@ -631,33 +586,31 @@ def dealholecards(ang: int, second: bool):
                 pos[0] += 75
         else:
             if second:
-                pos[0] += 10  # random.randint(-5, 5)
+                pos[0] += 10
                 a1 = -ang
             else:
                 a1 = ang
-
         spindeal(pos, backx, card1, screen, WIDTH//2, angle=a1, showcard=showyou)
-    R.deal_target = 0  # R.under_the_gun
+    RO.deal_target = 0  # RO.under_the_gun
+
 
 def showholecards():
-
     playernum = 0
-    for player in R.reordered_names:
+    for player in RO.reordered_names:
         showholecard(playernum)
         playernum += 1
 
+
 def showholecard(playernum: int):
-    playername = R.reordered_names[playernum]
-    offsets, cardname, cardimage = R.HoleCardRecord1[playername]
-    print(f'hole cards = {R.HoleCardRecord2}')
-    offsets2, cardname2, cardimage2 = R.HoleCardRecord2[playername]
-    # card2 = [offsets[0]+R.CARDWIDTH,offsets[1]+10]
+    playername = RO.reordered_names[playernum]
+    offsets, cardname, cardimage = RO.HoleCardRecord1[playername]
+    #print(f'hole cards = {RO.HoleCardRecord2}')
+    offsets2, cardname2, cardimage2 = RO.HoleCardRecord2[playername]
     cardsize = cardimage.get_size()
     x1 = offsets[0] - 10
     y1 = offsets[1] #- 10
     x2 = offsets[0]- 10 + cardsize[0] + 2
     y2 = offsets[1] #- 10
-    #cardrect = Rect(offsets[0]-22, offsets[1]-20, cardsize[0]*2+20, cardsize[1]+27)
     cardrect = Rect(offsets[0] - 10, offsets[1] - 10, cardsize[0]*2+2, cardsize[1]+8)
     pygame.draw.rect(screen, Color(207, 86, 25), cardrect, width=0)
     scaleblit(cardimage, [x1, y1])
@@ -670,7 +623,7 @@ class CardAnimate:
     CLOCK = pygame.time.Clock()
 
 
-#    cx, cy = WIDTH, HEIGHT angle=0 cscale = 1.5
+
 def spinmovescaleblit(surf: Surface, dest: Surface, xmove: int, ymove: int,
                       degrees: float, scale: float):
     sr = surf.get_rect()
@@ -682,11 +635,9 @@ def spinmovescaleblit(surf: Surface, dest: Surface, xmove: int, ymove: int,
 def spindeal(tpos: [int, int], back: Surface, card: Surface, window: Surface,
              swidth, angle=0., showcard=False):
     run = True
-    # cw = back.get_width()
     cx = swidth // 2 + 360
     cy = back.get_height()+28  # HEIGHT
     cx, cy = scalept([cx, cy])
-    # ds: float = (1 - cscale) / sheight
     angle1: float = angle
     if showcard:
         rot_card = card
@@ -710,12 +661,10 @@ def spindeal(tpos: [int, int], back: Surface, card: Surface, window: Surface,
         cs = max(.25, t) * SCALEH
         bx = int(cx * (1.-t) + tpos[0] * t)
         by = int(cy * (1.-t) + tpos[1] * t)
-        # print(f'CX,CY={cx},{cy}')
         angle1 += 2
         spinmovescaleblit(rot_card, window, bx, by, angle1, cs)
         cardrect = Rect(bx, by, rot_card.get_width(), rot_card.get_height())
         pygame.display.update(cardrect)
-        # pygame.display.flip()
         t += dt
         run = t <= 1.
     window.blit(screen_copy, (0, 0))
@@ -723,48 +672,44 @@ def spindeal(tpos: [int, int], back: Surface, card: Surface, window: Surface,
     spinmovescaleblit(rot_card, window, bx, by, angle, cs)
     pygame.display.flip()
 
-    # run = False
- 
 
 def dealflop():
-    dealcommunitycards()  # R.cccard)
-    R.cccard = (R.cccard + 1)  # % 5
-    dealcommunitycards()  # R.cccard)
-    R.cccard = (R.cccard + 1)  # % 5
-    dealcommunitycards()  # R.cccard)
-    R.cccard = (R.cccard + 1)  # % 5
+    dealcommunitycards()  # RO.cccard)
+    RO.cccard = (RO.cccard + 1)  # % 5
+    dealcommunitycards()  # RO.cccard)
+    RO.cccard = (RO.cccard + 1)  # % 5
+    dealcommunitycards()  # RO.cccard)
+    RO.cccard = (RO.cccard + 1)  # % 5
 
 
 def dealturn():
-    dealcommunitycards()  # R.cccard)
-    R.cccard = (R.cccard + 1) % 5
+    dealcommunitycards()  # RO.cccard)
+    RO.cccard = (RO.cccard + 1) % 5
 
 
 def dealriver():
-    dealcommunitycards()  # R.cccard)
-    R.cccard = (R.cccard + 1) % 5
+    dealcommunitycards()  # RO.cccard)
+    RO.cccard = (RO.cccard + 1) % 5
 
     
 def dealcommunitycards():
-    ccnum = R.cccard
+    ccnum = RO.cccard
     deck_cardname, deck_cardimage = pick_a_card()
     card: Card = Card(deck_cardname)
-    R.CommunityCards.append(card)
-    diskcardimage = R.card_image_d[deck_cardname]
+    RO.CommunityCards.append(card)
+    diskcardimage = RO.card_image_d[deck_cardname]
     rcard = Community_cards[ccnum]
-    #offsets, layerimage, visible = R.layerData.get(rcard)
-    offsets = R.COMMUNITYCARDSXY[ccnum]
+    offsets = RO.COMMUNITYCARDSXY[ccnum]
     offsets = scalept(offsets)
-    backx = R.card_image_d['bk']
+    backx = RO.card_image_d['bk']
     card1 = diskcardimage
-    # print(f'Community_cards {ccnum}: {rcard} {offsets}')
     coff = [offsets[0], offsets[1] + 6]
     spindeal(coff, backx, card1, screen, WIDTH//2, angle=0, showcard=True)
 
 
 def drawlayers():
     screen.fill(Green)
-    for layername, layerdata in R.layerData.items():
+    for layername, layerdata in RO.layerData.items():
         offsets, layerimage, visible = layerdata
         if visible:
             scaleblit(layerimage, offsets)
@@ -772,29 +717,31 @@ def drawlayers():
 
 def draw_text_labels(bottexts: [str]):
     i = -1
-    R.BOTIMAGES = []
+    RO.BOTIMAGES = []
     for index, bot_name in enumerate(bottexts):
         i += 1
         pos = DealerButtons[index]
         # info = bot_name  # + ': $'+str(stack[i])
-        imagelabel = labelimage(R.PLAYERNAMES[index], pos, Color(4, 24, 5), shadow=Color(250, 252,  23))
-        R.BOTIMAGES.append(imagelabel)
+        imagelabel = labelimage(RO.PLAYERNAMES[index], pos, Color(4, 24, 5), shadow=Color(250, 252,  23))
+        RO.BOTIMAGES.append(imagelabel)
         scaleblit(imagelabel, pos)
     return
 
 
 def drawbotlabels():
-    for n in range(R.num_players_in_hand):
+    for n in range(NUMPLAYERS):  #RO.num_players_in_hand):
         pos = DealerButtons[n]
-        txt = R.PLAYERNAMES[n]
+        txt = RO.PLAYERNAMES[n]
         print(pos, n, txt)
         draw_labels(pos, n, txt)
 
 
 def draw_labels(pos: [int, int], player_num: int, info: str) -> image:
-    q = R.PlayerBestHands[player_num]
+    q = RO.PlayerBestHands[player_num]
     stack = H.PlayerStakes[player_num]
-    infoline = f'{info}:${stack}:{q.rankhand}: {q.hand_name}'
+    #handkey = handrankdict.values(q.rankhand)
+    handkey = [k for k, v in handrankdict.items() if v == q.rankhand][0]
+    infoline = f'{info}:${stack} :{handkey}:{q.hand_name}'  # {q.rankhand}'
     writelog([infoline], printalso=True)
     textimage = labelimage(infoline, pos, Color(4, 24, 5), shadow=Color(250, 252, 23))
     return textimage
@@ -819,7 +766,7 @@ def refresh_display():
 
 
 def drawdealerbutton():
-    pos = DealerButtons[R.the_button]
+    pos = DealerButtons[RO.the_button]
     scaleblit(dealerbutton, pos)
 
 
@@ -837,8 +784,8 @@ def ready_bet(amount):
 # TODO: Finish
 # def keep_track_of_betting(playername: str):
 #     # maintain betting variables for blinds, minimum, maximum, and what each player ows the pot
-#     # Playernum = R.PLAYERS[playername]
-#     # notfolded = R.inhand[Playernum]
+#     # Playernum = RO.PLAYERS[playername]
+#     # notfolded = RO.inhand[Playernum]
 #     # H.turn = 0
 #     H.pot = 0
 #     H.pottext = ''
@@ -858,11 +805,11 @@ def ready_bet(amount):
 
 
 def placebet(playername, action: str):
-    playernum = R.PLAYERS[playername]
+    playernum = RO.PLAYERS[playername]
     match action:
         case "Fold":
             H.bet = 0  # sit out the rest of the hand
-            R.inhand[playernum] = False
+            RO.inhand[playernum] = False
             return
         case "Call":
             # find the current bet amount and call it
@@ -871,7 +818,7 @@ def placebet(playername, action: str):
             # find the amount of the maximum raise and bet it
             H.bet = H.minbet
             H.raises[playername] = H.bet
-            R.last_player_to_raise = playername
+            RO.last_player_to_raise = playername
 
         case "Bet":
             if playername == 'you':  # call, raise, or fold as appropriate
@@ -891,8 +838,8 @@ def placebet(playername, action: str):
     H.bet = 0
     labelimage(f'              ', K.placetext.topleft,
                Color(250, 205, 25), shadow=Color(5, 23, 25))
-    potimage = R.main_font.render(f'${H.pot}', True, Color(5, 23, 25)).convert_alpha()
-    potimage2 = R.main_font.render(H.pottext, True, Color(5, 23, 25)).convert_alpha()
+    potimage = RO.main_font.render(f'${H.pot}', True, Color(5, 23, 25)).convert_alpha()
+    potimage2 = RO.main_font.render(H.pottext, True, Color(5, 23, 25)).convert_alpha()
     pygame.draw.rect(screen, Red, K.potrect, width=0)
     pygame.draw.rect(screen, dark, K.potrect, width=3)
     screen.set_clip(K.potrect)
@@ -937,9 +884,9 @@ def whichclicked(rectlist: [Rect], pos: [int, int]) -> int:
 def setupui():
     drawlayers()
     drawdealerbutton()
-    R.inhand = []
+    RO.inhand = []
     for i in range(0, NUMPLAYERS):
-        R.inhand.append(True)
+        RO.inhand.append(True)
     # pos = [1550, 5]
     pygame.event.set_blocked(pygame.MOUSEMOTION)
     K.wsurface.fill(Color(0, 0, 0), rect=K.textrect, special_flags=0)
@@ -947,28 +894,28 @@ def setupui():
     
 
 def there_are_messages() -> bool:
-    return len(R.messageq) > 0
+    return len(RO.messageq) > 0
 
 
 def messages() -> str:
-    if len(R.messageq) > 0:
-        return R.messageq.pop(0)
+    if len(RO.messageq) > 0:
+        return RO.messageq.pop(0)
     else:
         return ''
 
 
 def foldplayer(playernum: int, playername: str):
     postmessage(f'{playername} {"fold" if playername == "you" else "folds"}')
-    R.inhand[playernum] = False
-    R.num_players_in_hand -= 1
+    RO.inhand[playernum] = False
+    RO.num_players_in_hand -= 1
 
 
 def chooseverb(pluralverb: str, singularverb: str, playername: str):
     return f' {singularverb if playername == "you" else pluralverb}'
 
 
-def bet(playername: str, bettype: int, verbose=False):
-    playernum = R.PLAYERS[playername]
+def bet(playername: str, bettype: int, verbose: object = False) -> object:
+    playernum = RO.PLAYERS[playername]
     if bettype == A.fold_initial_round:
         foldplayer(playernum, playername)
     if bettype == A.call_big_blind:
@@ -995,12 +942,10 @@ def bet(playername: str, bettype: int, verbose=False):
 
 
 def preflop_betting():
-    playernum = R.PLAYERS[R.bet_target_name]
-    dealto = R.bet_target
-    # print(f'{R.HoleCardRecord1}')
-    print("order of deal:",R.bet_target_name)
-    card1: str = R.HoleCardRecord1[R.bet_target_name][1]
-    card2: str = R.HoleCardRecord2[R.bet_target_name][1]
+    playernum = RO.PLAYERS[RO.bet_target_name]
+    dealto = RO.bet_target
+    card1: str = RO.HoleCardRecord1[RO.bet_target_name][1]
+    card2: str = RO.HoleCardRecord2[RO.bet_target_name][1]
     rank1: int = Card.rankOrderD[card1[0]]
     rank2: int = Card.rankOrderD[card2[0]]
     if card1[1] == card2[1]:
@@ -1012,67 +957,67 @@ def preflop_betting():
     else:
         holecards = card1[0] + card2[0] + suited
     if fold_call_or_raise(holecards) == betfold and dealto == 8:
-        if R.num_players_in_hand == 1:  # you are the big  blind and only one left in
-            bet(R.bet_target_name, A.pay_big_blind)
+        if 1 == RO.num_players_in_hand:  # you are the big  blind and only one left in
+            bet(RO.bet_target_name, A.pay_big_blind)
         else:
-            bet(R.bet_target_name, A.fold_initial_round)
-        postmessage(f'{R.bet_target_name} folds pre-flop: {holecards}')
+            bet(RO.bet_target_name, A.fold_initial_round)
+        postmessage(f'{RO.bet_target_name} folds pre-flop: {holecards}')
         return
     if dealto == 1:
-        verb = chooseverb("pays", "pay", R.bet_target_name)
-        postmessage(f'{dealto}:{R.bet_target_name} {verb} the small blind: {holecards}')
-        bet(R.bet_target_name, A.pay_small_blind)
+        verb = chooseverb("pays", "pay", RO.bet_target_name)
+        postmessage(f'{dealto}:{RO.bet_target_name} {verb} the small blind: {holecards}')
+        bet(RO.bet_target_name, A.pay_small_blind)
     elif dealto == 2:
-        verb = chooseverb("pays", "pay", R.bet_target_name)
-        postmessage(f'{dealto}:{R.bet_target_name}  {verb}  the big blind: {holecards}')
-        bet(R.bet_target_name, A.pay_big_blind)
+        verb = chooseverb("pays", "pay", RO.bet_target_name)
+        postmessage(f'{dealto}:{RO.bet_target_name}  {verb}  the big blind: {holecards}')
+        bet(RO.bet_target_name, A.pay_big_blind)
     elif dealto == 3 and fold_call_or_raise(holecards) == betfold:
         if H.playerAggression[playernum] == G.BerzerkerAggressive and \
                 diceroll() == 7:  # 17% chance
-            verb = chooseverb("raises", "raise", R.bet_target_name)
-            postmessage(f'{dealto}:{R.bet_target_name} {verb} by double the big blind: {holecards}')
-            bet(R.bet_target_name, A.raise_double_big_blind)
+            verb = chooseverb("raises", "raise", RO.bet_target_name)
+            postmessage(f'{dealto}:{RO.bet_target_name} {verb} by double the big blind: {holecards}')
+            bet(RO.bet_target_name, A.raise_double_big_blind)
         else:
-            verb = chooseverb("folds", "fold", R.bet_target_name)
-            postmessage(f'{R.bet_target_name}  {verb}  preflop: {holecards}')
-            bet(R.bet_target_name, A.fold_initial_round)
+            verb = chooseverb("folds", "fold", RO.bet_target_name)
+            postmessage(f'{RO.bet_target_name}  {verb}  preflop: {holecards}')
+            bet(RO.bet_target_name, A.fold_initial_round)
     elif dealto == 3 and fold_call_or_raise(holecards) == betbig:
-        verb = chooseverb("raises", "raise", R.bet_target_name)
-        print(f'{dealto}:{R.bet_target_name} {verb} by double the big blind: {holecards}')
-        bet(R.bet_target_name, A.raise_double_big_blind)
+        verb = chooseverb("raises", "raise", RO.bet_target_name)
+        print(f'{dealto}:{RO.bet_target_name} {verb} by double the big blind: {holecards}')
+        bet(RO.bet_target_name, A.raise_double_big_blind)
     elif 2 < dealto < 8 and fold_call_or_raise(holecards) <= betave:
-        verb = chooseverb("calls", "call", R.bet_target_name)
-        postmessage(f'{dealto}:{R.bet_target_name} {verb} the big blind: {holecards}')
-        bet(R.bet_target_name, A.call_big_blind)
+        verb = chooseverb("calls", "call", RO.bet_target_name)
+        postmessage(f'{dealto}:{RO.bet_target_name} {verb} the big blind: {holecards}')
+        bet(RO.bet_target_name, A.call_big_blind)
     elif dealto == 1 and fold_call_or_raise(holecards) <= betave:
-        verb = chooseverb("calls", "call", R.bet_target_name)
-        postmessage(f'{dealto}:{R.bet_target_name} {verb} the big blind: {holecards}')
-        bet(R.bet_target_name, A.call_big_minus_small)
+        verb = chooseverb("calls", "call", RO.bet_target_name)
+        postmessage(f'{dealto}:{RO.bet_target_name} {verb} the big blind: {holecards}')
+        bet(RO.bet_target_name, A.call_big_minus_small)
 
 
 # TODO: Finish
 def post_flop_betting(dealto: int):
-    better = R.reordered_names[dealto]
+    better = RO.reordered_names[dealto]
     return better  # just for now
-    # playernum = R.PLAYERS[better]
+    # playernum = RO.PLAYERS[better]
 
 
 def next_card(init=False):
     if init:
-        R.deal_target = R.the_button
-        R.cardsdealt = 0
-    R.deal_target = (R.deal_target + 1) % R.num_players_in_hand
-    R.deal_target_name = R.reordered_names[R.deal_target]
-    R.cardsdealt += 1
+        RO.deal_target = RO.the_button
+        RO.cardsdealt = 0
+    RO.deal_target = (RO.deal_target + 1) % RO.num_players_in_hand
+    RO.deal_target_name = RO.reordered_names[RO.deal_target]
+    RO.cardsdealt += 1
     return
 
 
 def inc_bet_target(bet_target: int) -> int:
-    players_in: int = list.count(R.inhand, True)
+    players_in: int = list.count(RO.inhand, True)
     i: int = 0
     not_done = True
     while not_done:
-        not_done = (not R.inhand[bet_target]) and (i < players_in)  # skip players that folded
+        not_done = (not RO.inhand[bet_target]) and (i < players_in)  # skip players that folded
         bet_target = (bet_target + 1) % NUMPLAYERS
         i += 1
     return bet_target
@@ -1080,57 +1025,57 @@ def inc_bet_target(bet_target: int) -> int:
 
 def next_bet(init=False, preholecards=False) -> bool:
     if init:
-        R.bets = 0
-        bet_target = 0  # R.the_button
+        RO.bets = 0
+        bet_target = 0  # RO.the_button
         if preholecards:
             bet_target = inc_bet_target(bet_target)
-            R.bets += 1
+            RO.bets += 1
         else:
             # bet_target = inc_bet_target(bet_target)
             bet_target = inc_bet_target(bet_target)
             bet_target = inc_bet_target(bet_target)
-            print(f'{R.bets}')
-            R.bets += 2
+            print(f'{RO.bets}')
+            RO.bets += 2
     else:
-        bet_target = R.bet_target
+        bet_target = RO.bet_target
         bet_target = inc_bet_target(bet_target)
-        R.bets += 1
-    R.bet_target = bet_target
-    R.bet_target_name = R.reordered_names[R.bet_target]
-    return R.inhand[R.bet_target]
+        RO.bets += 1
+    RO.bet_target = bet_target
+    RO.bet_target_name = RO.reordered_names[RO.bet_target]
+    return RO.inhand[RO.bet_target]
 
 
 def whose_turn_is_it(start=False, nextplayer=False) -> int:
     if start:
-        R.PlayerTurn = R.under_the_gun
+        RO.PlayerTurn = RO.under_the_gun
     elif nextplayer:
-        R.PlayerTurn = (R.PlayerTurn + 1) % NUMPLAYERS
+        RO.PlayerTurn = (RO.PlayerTurn + 1) % NUMPLAYERS
     i = 0
-    while not R.inhand[R.PlayerTurn]:
-        R.PlayerTurn = (R.PlayerTurn + 1) % NUMPLAYERS
+    while not RO.inhand[RO.PlayerTurn]:
+        RO.PlayerTurn = (RO.PlayerTurn + 1) % NUMPLAYERS
         i += 1
         if i > NUMPLAYERS:  # nobody is in
             return -1  # everyone folded!
-    return R.PlayerTurn
+    return RO.PlayerTurn
 
 def postmessage(message: str):
-    R.messageq.append(message)
+    RO.messageq.append(message)
     # print(message)
 
 
 def messageswaiting() -> bool:
-    return len(R.messageq) > 0
+    return len(RO.messageq) > 0
 
 
 def showmessage(message: str):
     # return
     if len(message) > 0:
         postmessage(message)
-    if len(R.messageq) > 0:
-        message = R.messageq.pop(0)
-    K.text_surf = R.main_font.render(message, True, Color(15, 100, 255))
+    if len(RO.messageq) > 0:
+        message = RO.messageq.pop(0)
+    K.text_surf = RO.main_font.render(message, True, Color(15, 100, 255))
     # K.text_surf_list.append(K.text_surf)
-    h = R.main_font.get_height()
+    h = RO.main_font.get_height()
     K.text_y = K.textrect.bottom - h - 10
     scaleblit(K.text_surf, (K.textrect.left + 10, K.text_y))
     K.wsurface.scroll(0, -h)
@@ -1140,7 +1085,7 @@ def showmessage(message: str):
 
 def getline() -> [str]:  #this is temporary to debug scrolling message system
     H.ibot = (H.ibot + 1) % NUMPLAYERS  # 9
-    bot = R.PLAYERNAMES[H.ibot]
+    bot = RO.PLAYERNAMES[H.ibot]
     if bot == 'you':
         names = ['you fold.', 'you call big blind',
                  'you raise 2 x big blind', 'you bet 20', 'you bet 40']
@@ -1253,11 +1198,11 @@ def sequencer() -> bool:
     # targetimage: image = buttonimages[0]
     delayed_sequence = False
     shiftkey = False
-    R.flaglist = []
+    RO.flaglist = []
     # stepinit = True
     firstrun = True
     # duration = 0
-    R.step = -1
+    RO.step = -1
     pygame.time.set_timer(timer_event, 1800)
     running = True
     # ---------------start event loop ------------------#
@@ -1281,7 +1226,7 @@ def sequencer() -> bool:
                 # continue
                 if firstrun:
                     firstrun = False
-                    R.step = 0
+                    RO.step = 0
                 # write commentary to scrolling list
                 if SIM:
                     names = getline()
@@ -1290,8 +1235,8 @@ def sequencer() -> bool:
                     if scroll_timer:
                         rtxt = messages()
                         writelog([rtxt], printalso=True)
-                K.text_surf = R.main_font.render(rtxt, True, Color(15, 100, 255))
-                K.text_y = K.textrect.bottom - R.main_font.get_height() - 10
+                K.text_surf = RO.main_font.render(rtxt, True, Color(15, 100, 255))
+                K.text_y = K.textrect.bottom - RO.main_font.get_height() - 10
                 scaleblit(K.text_surf, (K.textrect.left + 10, K.text_y))
                 scroll_timer = True
                 #pygame.time.set_timer(timer_event, vardelay)
@@ -1384,9 +1329,9 @@ def sequencer() -> bool:
                         print('bet placed')
                         betplaced = False
                         delayed_sequence = False
-            #print('state:' + str(R.step))
-            K.text_surf = R.main_font.render('state:' + str(R.step), True, Color(15, 100, 255))  # Color('white'))
-            K.text_y = K.textrect.bottom - R.main_font.get_height() + 100
+            #print('state:' + str(RO.step))
+            K.text_surf = RO.main_font.render('state:' + str(RO.step), True, Color(15, 100, 255))  # Color('white'))
+            K.text_y = K.textrect.bottom - RO.main_font.get_height() + 100
             staterect = Rect(K.textrect.left - 100, K.text_y, 85, 25)
             pygame.draw.rect(screen, Color(207, 86, 25), staterect, width=0)
             screen.blit(K.text_surf, staterect)
@@ -1405,80 +1350,77 @@ def sequencer() -> bool:
         display.flip()
         # display.update()
         K.pclock.tick(60)
-        # duration = pygame.time.get_ticks() - duration #-> milliseconds
-        # print(f'duration = {duration}')
-        # K.pclock.tick(60)
         if delayed_sequence:  # or messageswaiting()
             # print('delayed_sequence')
             continue
 
-        match R.step:
+        match RO.step:
             case 0:  # optional ante
-                R.reordered_names = players_in_deal_order()
+                RO.reordered_names = players_in_deal_order()
                 print(f'case: 0')
                 next_bet(init=True, preholecards=True)
-                if R.ante:
-                    bet(R.bet_target_name, A.pay_ante)
-                    msg = f'{R.bet_target_name} posts ante'
+                if RO.ante:
+                    bet(RO.bet_target_name, A.pay_ante)
+                    msg = f'{RO.bet_target_name} posts ante'
                     postmessage(msg)
                 else:
-                    msg = f"{R.bet_target_name} is in"
+                    msg = f"{RO.bet_target_name} is in"
                     postmessage(msg)
-                if R.bets >= NUMPLAYERS:
-                    if R.ante:
+                if RO.bets >= NUMPLAYERS:
+                    if RO.ante:
                         postmessage('all players post ante')
                     else:
                         postmessage('All players are in')
-                R.step = 1
+                RO.step = 1
 
             case 1:  # small blind
                 print(f'case: 1')
-                R.bet_target = R.the_button
-                R.bet_target = (R.bet_target + 1) % R.num_players_in_hand
-                R.bet_target_name = R.reordered_names[R.bet_target]
-                print(f'R.bet_target_name for small blind={R.bet_target}:{R.bet_target_name}')
-                bet(R.bet_target_name, A.pay_small_blind)
-                postmessage(f'{R.bet_target_name} {chooseverb("posts", "post", R.bet_target_name)} the small blind')
-                R.step = 2
+                RO.bet_target = RO.the_button
+                RO.bet_target = (RO.bet_target + 1) % RO.num_players_in_hand
+                RO.bet_target_name = RO.reordered_names[RO.bet_target]
+                print(f'RO.bet_target_name for small blind={RO.bet_target}:{RO.bet_target_name}')
+                bet(RO.bet_target_name, A.pay_small_blind)
+                postmessage(f'{RO.bet_target_name} {chooseverb("posts", "post", RO.bet_target_name)} the small blind')
+                RO.step = 2
 
             case  2:  # big blind
                 if initialization('big blind'):
-                    R.bet_target = (R.bet_target + 1) % R.num_players_in_hand
-                    R.bet_target_name = R.reordered_names[R.bet_target]
-                    bet(R.bet_target_name, A.pay_big_blind)
-                    postmessage(f'{R.bet_target_name} {chooseverb("posts", "post", R.bet_target_name)} the big blind')
-                    R.step = 3
+                    RO.bet_target = (RO.bet_target + 1) % RO.num_players_in_hand
+                    RO.bet_target_name = RO.reordered_names[RO.bet_target]
+                    bet(RO.bet_target_name, A.pay_big_blind)
+                    postmessage(f'{RO.bet_target_name} {chooseverb("posts", "post", RO.bet_target_name)} the big blind')
+                    RO.step = 3
 
             case 3:  # deal the first hole card
                 if initialization('holecard1'):
                     next_card(init=True)
-                    print(f'#{R.cardsdealt} card to {R.deal_target_name}')
-                    dealholecard(10, False, R.deal_target_name, initc=True)
-                    # postmessage(f"Dealing first hole card to {R.deal_target_name}")
+                    print(f'#{RO.cardsdealt} card to {RO.deal_target_name}')
+                    dealholecard(10, False, RO.deal_target_name, initc=True)
+                    # postmessage(f"Dealing first hole card to {RO.deal_target_name}")
                     continue
                 else:
                     next_card()
-                # player = R.reordered_names[R.deal_target]
-                print(f'#{R.cardsdealt} card to {R.deal_target_name} num_players_in_hand: {R.num_players_in_hand}')
-                dealholecard(10, False, R.deal_target_name)
-                if R.cardsdealt >= R.num_players_in_hand:
-                    R.step = 4
+                # player = RO.reordered_names[RO.deal_target]
+                print(f'#{RO.cardsdealt} card to {RO.deal_target_name} num_players_in_hand: {RO.num_players_in_hand}')
+                dealholecard(10, False, RO.deal_target_name)
+                if RO.cardsdealt >= RO.num_players_in_hand:
+                    RO.step = 4
                     # pygame.time.set_timer(card_event, 1800)
 
             case 4:
                 if initialization('holecard2'):
                     next_card(init=True)
-                    print(f'#{R.cardsdealt} card to {R.deal_target_name}')
-                    dealholecard(10, True, R.deal_target_name, initc=True)
+                    print(f'#{RO.cardsdealt} card to {RO.deal_target_name}')
+                    dealholecard(10, True, RO.deal_target_name, initc=True)
                     postmessage("Dealing second hole card")
                     continue
                 else:
                     next_card()
-                print(f'#{R.cardsdealt} card to {R.deal_target_name}')
-                dealholecard(10, True, R.deal_target_name)
-                if R.cardsdealt >= NUMPLAYERS:
+                print(f'#{RO.cardsdealt} card to {RO.deal_target_name}')
+                dealholecard(10, True, RO.deal_target_name)
+                if RO.cardsdealt >= NUMPLAYERS:
                     K.wsurface.fill(Red)
-                    R.step += 1
+                    RO.step += 1
                     # pygame.time.set_timer(card_event, 1800)
 
             case 5:
@@ -1490,82 +1432,82 @@ def sequencer() -> bool:
                     if next_bet():
                         preflop_betting()
 
-                if R.bet_target_name == 'you':
+                if RO.bet_target_name == 'you':
                     postmessage("Your bet")
                     delayed_sequence = True  # continue
-                print(f'{R.bet_target_name} is bet #{R.bets}')
-                if R.bets >= NUMPLAYERS:
-                    R.step += 1
+                print(f'{RO.bet_target_name} is bet #{RO.bets}')
+                if RO.bets >= NUMPLAYERS:
+                    RO.step += 1
 
             case 6:  # flop
                 dealflop()
-                R.step += 1
+                RO.step += 1
 
             case 7:  #
                 if initialization('post_flop_betting'):
                     delayed_sequence = True
                     if next_bet(init=True):
-                        bet(R.bet_target_name, A.raise_double_big_blind)
+                        bet(RO.bet_target_name, A.raise_double_big_blind)
                 else:
                     if next_bet():
-                        bet(R.bet_target_name, A.raise_double_big_blind)
-                    if R.bet_target_name == 'you':
+                        bet(RO.bet_target_name, A.raise_double_big_blind)
+                    if RO.bet_target_name == 'you':
                         delayed_sequence = True
                         postmessage("Your bet")
                         continue
-                print(f'{R.bet_target_name} is bet #{R.bets}')
-                if R.bets >= NUMPLAYERS:
-                    R.step += 1
+                print(f'{RO.bet_target_name} is bet #{RO.bets}')
+                if RO.bets >= NUMPLAYERS:
+                    RO.step += 1
 
             case 8:  # turn
                 dealturn()
-                R.step += 1
+                RO.step += 1
 
             case 9:  # post_turn_betting
                 if initialization('post_turn_betting'):
                     delayed_sequence = True
                     if next_bet(init=True):
-                        bet(R.bet_target_name, A.raise_double_big_blind)
+                        bet(RO.bet_target_name, A.raise_double_big_blind)
                 else:
                     next_bet()
-                    bet(R.bet_target_name, A.call_big_blind)
-                if R.bets >= NUMPLAYERS:
-                    R.step += 1
+                    bet(RO.bet_target_name, A.call_big_blind)
+                if RO.bets >= NUMPLAYERS:
+                    RO.step += 1
             case 10:  # river
                 if initialization('post_river_betting'):
                     dealriver()
                 next_bet()
-                bet(R.bet_target_name, A.call_big_blind)
-                if R.bets >= NUMPLAYERS:
-                    R.step += 1
+                bet(RO.bet_target_name, A.call_big_blind)
+                if RO.bets >= NUMPLAYERS:
+                    RO.step += 1
             case 11:  # showdown
-                R.step += 1
+                RO.step += 1
                 # if initialization('post_turn_betting'):
                 #     if next_bet(init=True):
-                #         bet(R.bet_target_name, A.raise_double_big_blind)
+                #         bet(RO.bet_target_name, A.raise_double_big_blind)
                 #         # show_cards = True
                 # else:
                 #     next_bet()
-                # R.playernum = R.PLAYERS[R.bet_target_name]
+                # RO.playernum = RO.PLAYERS[RO.bet_target_name]
                 #
-                # if R.bets >= NUMPLAYERS:  #R.playernum == 0:
-                #     R.step += 1
+                # if RO.bets >= NUMPLAYERS:  #RO.playernum == 0:
+                #     RO.step += 1
 
             case 12:
                 showholecards()
                 if initialization('showdown'):
-                    print(f'#{R.cardsdealt} card to {R.deal_target_name}')
-                    #showholecard(R.deal_target)
+                    print(f'#{RO.cardsdealt} card to {RO.deal_target_name}')
+                    #showholecard(RO.deal_target)
                 #else:
-                    if R.bets >= R.num_players_in_hand: #NUMPLAYERS:
-                        R.step += 1
+                    if RO.bets >= RO.num_players_in_hand: #NUMPLAYERS:
+                        RO.step += 1
 
             case 13:
                 wn = calc_winner()
-                print (f'winner is {R.PLAYERNAMES}')
+                print(f'winner is {RO.PLAYERNAMES[wn]}')
                 refresh_display()
-                #drawbotlabels()
-                R.step += 1
+                drawbotlabels()
+                RO.step += 1
                 pygame.time.set_timer(timer_event, vardelay)
             case _:
                 pass
@@ -1592,7 +1534,6 @@ def onetimeinit():
 
 def main():
     preloadcards()
-    #parselayers()
     onetimeinit()
     logstats(load=True)
     
@@ -1601,11 +1542,13 @@ def main():
         set_card_offsets_simple()  # set_card_offsets()
         draw_poker_table()
         run = sequencer()
-        reinit()
+        H.PlayersActive = []
+        for i in range(NUMPLAYERS):
+            H.PlayersActive.append(True)
+        RO.num_players_in_hand = NUMPLAYERS
         inc_deal()
-        R.cccard = 0
-        R.deck = Carddeck(cards_52s1)
-#     pygame.quit()
+        RO.cccard = 0
+        RO.deck = Carddeck(cards_52s1)
 
 
 if __name__ == '__main__':

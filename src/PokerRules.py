@@ -254,6 +254,7 @@ class Carddeck:
 
     def shuffledeck(self, exchangeProb: int, iterations: int):
         """Shuffles the given List in-place."""
+
         exchangedone = False
         while not exchangedone:
             for _ in range(iterations):
@@ -359,7 +360,7 @@ class Hand:
         self.cards.extend(card_list)
         for card in card_list:
             newcard = Card(card.name)
-            card_str += card.name  # rank_str[card.rank] #str(Card.rank_str.index(newcard.rank)) #card_str +=
+            card_str +=f"{card.name}"  # rank_str[card.rank] #str(Card.rank_str.index(newcard.rank)) #card_str +=
             # card_str += Card.suit_str[newcard.suit]
         self.name = card_str
         rank_count = Hand.rankCounter.copy()
@@ -447,7 +448,7 @@ def logstats(load=False):
     if load:
         Persistent.load()
     for k, v in used_count.items():
-        Persistent.STATS[k] += v #random.randint(1, 15)
+        Persistent.STATS[k] += v
     Persistent.save()
     
 # The 21 premutations of 7 cards into 5
@@ -523,7 +524,7 @@ def best_hands(holecards: [Card], communitycards: [Card]) -> Hand:
         hand = Hand(elong)
         hands.append(hand)
         score = hand.rankhand
-        print(f'\n score={score}')
+        #print(f'\n score={score}')
         if score < bestscore: #(lower scores are better: think golf)
             bestscore = score
             wn = n
